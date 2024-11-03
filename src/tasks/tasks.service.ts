@@ -1,37 +1,40 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { Task } from '../insterfaces/tasks/task.interface';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Task } from './task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { v4 as uuid } from 'uuid';
-import { Status } from '../enums/tasks/status.enum';
+import { Status } from '../enums/tasks/task-status.enum';
+import { TasksRepository } from './tasks.repository';
 
 @Injectable()
 export class TasksService {
-  private tasks: Task[] = [];
-  create(createTaskDto: CreateTaskDto): Task {
-    const { title, description } = createTaskDto;
-    const task: Task = {
-      id: uuid(),
-      title,
-      description,
-      status: Status.PENDING,
-    };
-    this.tasks.push(task);
-    return task;
+  constructor(private taskRepository: TasksRepository) {}
+
+  async getTaskById(id: number): Promise<Task> {
+    const found = await this.taskRepository.findOneBy({ id: id });
+    if (!found) {
+      throw new NotFoundException();
+    } else {
+      return found;
+    }
   }
+  create(createTaskDto: CreateTaskDto): Promise<Task> {
+    return this.taskRepository.createTask(createTaskDto);
+  }
+  async delete(id: number): Promise<void> {
+    const result = await this.taskRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException();
+    }
+  }
+
+  /*private tasks: Task[] = [];
   getAll(): Task[] {
     return this.tasks;
   }
-  getTaskById(id: string): Task {
-    const found: Task = this.tasks.find((task) => task.id === id);
-    if (!found) {
-      throw new NotFoundException();
-    }
-    return found;
-  }
-  /**
+
+  /!**
    * @param id
    * @param createTaskDto
-   * */
+   * *!/
   update(id: string, createTaskDto: CreateTaskDto): Task {
     const task = this.getTaskById(id);
     const { title, description } = createTaskDto;
@@ -39,7 +42,5 @@ export class TasksService {
     task.description = description;
     return task;
   }
-  delete(id: string): void {
-    this.tasks = this.tasks.filter((task) => task.id !== id);
-  }
+  */
 }
