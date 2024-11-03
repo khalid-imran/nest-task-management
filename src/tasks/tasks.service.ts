@@ -18,7 +18,10 @@ export class TasksService {
     this.tasks.push(task);
     return task;
   }
-  getTasks() {
+  getTasks(): Task[] {
     return this.tasks;
+  }
+  getTaskById(id: string): Task {
+    return this.tasks.find((task) => task.id === id);
   }
 }
